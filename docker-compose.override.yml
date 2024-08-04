@@ -1,0 +1,90 @@
+version: "3.1"
+services:
+  webserver:
+    networks:
+      - ndsnet
+
+  scheduler:
+    networks:
+      - ndsnet
+
+  triggerer:
+    networks:
+      - ndsnet
+
+  kafka:
+    image: confluentinc/cp-kafka
+    ports:
+      - "9092:9092"
+      - "19092:19092"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,DOCKER_HACK://kafka:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,DOCKER_HACK:PLAINTEXT
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    command:
+      [
+        "sh",
+        "-c",
+        "/usr/bin/kafka-topics --create --bootstrap-server kafka:9092,kafka:19092 --replication-factor 1 --partitions 1 --topic country || true && /etc/confluent/docker/run",
+      ]
+    networks:
+      - ndsnet
+  zookeeper:
+    image: zookeeper:latest
+    ports:
+      - "2181:2181"
+    networks:
+      - ndsnet
+
+  spark-master:
+    image: airflow/spark-master
+    build: ./spark/master
+    container_name: spark-master
+    ports:
+      - "8082:8080"
+      - "7077:7077"
+    environment:
+      - INIT_DAEMON_STEP=setup_spark
+    networks:
+      - ndsnet
+
+  spark-worker:
+    image: airflow/spark-worker
+    build: ./spark/worker
+    container_name: spark-worker
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"
+    environment:
+      - "SPARK_MASTER=spark://spark-master:7077"
+    networks:
+      - ndsnet
+
+  metabase:
+    image: metabase/metabase:v0.50.4
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - ./include/data/metabase:/metabase-data
+    networks:
+      - ndsnet
+
+  docker-proxy:
+    image: alpine/socat
+    command: "TCP4-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock"
+    ports:
+      - "2376:2375"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ndsnet
+
+networks:
+  ndsnet:
+    driver: bridge
+
+volumes:
+  streaming_data:

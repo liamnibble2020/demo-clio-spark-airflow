@@ -1,0 +1,5 @@
+# Astro Runtime includes the following pre-installed providers packages: https://docs.astronomer.io/astro/runtime-image-architecture#provider-packages
+boto3
+apache-airflow-providers-docker==3.7.1
+confluent-kafka==2.1.1
+apache-airflow-providers-apache-kafka==1.0.0
