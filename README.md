@@ -1,6 +1,6 @@
-# `DEMO PROJECT for SPARK and AIRFLOW`
+# `DEMO PROJECT for SPARK, AIRFLOW and KAFKA`
 
-![Diagram](./images/airflow.drawio.png)
+![Diagram](./images/clio.drawio.png)
 
 # `How it works in local`
 
