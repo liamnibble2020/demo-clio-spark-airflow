@@ -1,5 +1,7 @@
 # `DEMO PROJECT for SPARK and AIRFLOW`
 
+![Diagram](./images/airflow.drawio.png)
+
 # `How it works in local`
 
     Open Docker Desktop
